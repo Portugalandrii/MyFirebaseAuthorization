@@ -26,7 +26,7 @@ class User_activity : AppCompatActivity() {
         var recyclerView = findViewById<RecyclerView>(R.id.list)
         recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
 
-        var adapter:DataUserAdapter = DataUserAdapter(dataUserList)
+        var adapter: DataUserAdapter = DataUserAdapter(dataUserList)
         recyclerView.adapter = adapter
 
         mDatabase = FirebaseDatabase.getInstance().getReference("user").child(user!!.uid)
@@ -36,10 +36,12 @@ class User_activity : AppCompatActivity() {
             var user: DataUser? = DataUser(key, edit_name.text.toString(), edit_age.text.toString())
 
             //записывыем значение
-            mDatabase.child("Info").child(key).setValue(user)
+            //mDatabase.child("Info").child(key).setValue(user)    --- не работает
+            mDatabase.child("Info").setValue(user)
+
         }
 
-        val userListener = object : ChildEventListener{
+        val userListener = object : ChildEventListener {
             override fun onCancelled(p0: DatabaseError) {
                 TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
             }
@@ -49,33 +51,35 @@ class User_activity : AppCompatActivity() {
             }
 
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
-
-//                var user: DataUser = p0.child("Info").value
-                println("??????????????????????????????????${p0.child("Info")}")
-//                var index = getItemIndex(user)
-//                dataUserList?.set(index, user)
-//                adapter.notifyDataSetChanged()
+                var dataUser: DataUser = p0.child("Info").getValue(DataUser::class.java)!!
+                var index = getItemIndex(dataUser)
+                dataUserList?.set(index, dataUser)
+                adapter.notifyDataSetChanged()
+                println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${dataUserList}")
             }
 
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
-                println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${p0.child("Info").value}")
-//                var user: DataUser = p0.child("user").child("Info").getValue(DataUser::class.java)!!
-//                dataUserList?.add(user)
-//                adapter.notifyDataSetChanged()
-               // println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${user.name}")
+                var dataUser: DataUser = p0.child("Info").getValue(DataUser::class.java)!!
+                dataUserList?.add(dataUser)
+                adapter.notifyDataSetChanged()
+
+//                var user = p0.child("Info").child("-LkgoC11iNUJVU7IaBX8").getValue(DataUser::class.java)
+
 
             }
 
             override fun onChildRemoved(p0: DataSnapshot) {
-                var user: DataUser = p0.getValue(DataUser::class.java)!!
+                var user: DataUser = p0.child("Info").getValue(DataUser::class.java)!!
                 var index = getItemIndex(user)
                 dataUserList?.removeAt(index)
                 adapter.notifyDataSetChanged()
+
             }
 
         }
         reference!!.addChildEventListener(userListener)
     }
+
     private fun getItemIndex(user: DataUser): Int {
         var index = -1
         if (this.dataUserList != null) {
@@ -85,6 +89,7 @@ class User_activity : AppCompatActivity() {
                     break
             }
         }
+        println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^$index")
         return index
     }
 
