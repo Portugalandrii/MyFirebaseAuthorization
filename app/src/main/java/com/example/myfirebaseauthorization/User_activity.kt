@@ -17,7 +17,6 @@ class User_activity : AppCompatActivity() {
     //1. Объявляем список
     var dataUserList: MutableList<DataUser> = ArrayList()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.user_activity)
@@ -33,64 +32,39 @@ class User_activity : AppCompatActivity() {
 
         button_save.setOnClickListener {
             val key: String = mDatabase.push().key!!
-            var user: DataUser? = DataUser(key, edit_name.text.toString(), edit_age.text.toString())
+            var user: DataUser? = DataUser(edit_name.text.toString(), edit_age.text.toString())
 
-            //записывыем значение
-            //mDatabase.child("Info").child(key).setValue(user)    --- не работает
-            mDatabase.child("Info").setValue(user)
+            mDatabase.child(key).child("Info").setValue(user)
 
         }
 
         val userListener = object : ChildEventListener {
+
             override fun onCancelled(p0: DatabaseError) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
             }
 
             override fun onChildMoved(p0: DataSnapshot, p1: String?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
             }
 
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
-                var dataUser: DataUser = p0.child("Info").getValue(DataUser::class.java)!!
-                var index = getItemIndex(dataUser)
-                dataUserList?.set(index, dataUser)
+                val children = p0!!.children
+                children.forEach {
+                    var dataUser: DataUser = it.child("Info").getValue(DataUser::class.java)!!
+                    dataUserList?.add(dataUser)
+
+                }
                 adapter.notifyDataSetChanged()
-                println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${dataUserList}")
             }
 
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
-                var dataUser: DataUser = p0.child("Info").getValue(DataUser::class.java)!!
-                dataUserList?.add(dataUser)
-                adapter.notifyDataSetChanged()
-
-//                var user = p0.child("Info").child("-LkgoC11iNUJVU7IaBX8").getValue(DataUser::class.java)
-
 
             }
 
             override fun onChildRemoved(p0: DataSnapshot) {
-                var user: DataUser = p0.child("Info").getValue(DataUser::class.java)!!
-                var index = getItemIndex(user)
-                dataUserList?.removeAt(index)
-                adapter.notifyDataSetChanged()
 
             }
-
         }
         reference!!.addChildEventListener(userListener)
-    }
-
-    private fun getItemIndex(user: DataUser): Int {
-        var index = -1
-        if (this.dataUserList != null) {
-            for (i in this!!.dataUserList!!) {
-                index++
-                if (i.key.equals(user.key))
-                    break
-            }
-        }
-        println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^$index")
-        return index
     }
 
 }

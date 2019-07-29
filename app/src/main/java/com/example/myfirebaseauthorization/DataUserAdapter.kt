@@ -24,7 +24,6 @@ class DataUserAdapter(var list: MutableList<DataUser>): RecyclerView.Adapter<Vie
 
         vh?.name?.text = "Имя: " + list?.get(posit).name
         vh?.age?.text = "Возраст: " + list?.get(posit).age
-        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${list?.get(posit).name}")
     }
 
 }
