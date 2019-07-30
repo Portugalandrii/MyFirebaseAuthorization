@@ -24,17 +24,44 @@ class User_activity : AppCompatActivity() {
 
         var recyclerView = findViewById<RecyclerView>(R.id.list)
         recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
-
-        var adapter: DataUserAdapter = DataUserAdapter(dataUserList)
+        mDatabase = FirebaseDatabase.getInstance().getReference("user").child(user!!.uid)
+        var adapter: DataUserAdapter = DataUserAdapter(dataUserList,this, mDatabase)
         recyclerView.adapter = adapter
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("user").child(user!!.uid)
+
 
         button_save.setOnClickListener {
-            val key: String = mDatabase.push().key!!
-            var user: DataUser? = DataUser(edit_name.text.toString(), edit_age.text.toString())
+//            val key: String = mDatabase.push().key!!
+//            var user: DataUser? = DataUser(key, edit_name.text.toString(), edit_age.text.toString())
+//
+//            mDatabase.child(key).child("Info").setValue(user)
+            if (edit_key.getText().length == 0) {
+                if (edit_name.getText().length > 0 && edit_age.getText().length > 0) {
 
-            mDatabase.child(key).child("Info").setValue(user)
+
+                    var name = edit_name.text.toString()
+                    var age = edit_age.text.toString()
+                    val key: String = mDatabase.push().key!!
+                    var user = key?.let { it1 -> DataUser(it1, name, age) }
+
+                    mDatabase!!.child(key).child("Info").setValue(user)
+                    edit_name.setText("")
+                    edit_age.setText("")
+                    edit_key.setText("")
+
+                }
+            } else {
+                var key = intent.getStringExtra("key")
+
+                edit_key.setText("")
+                var name = edit_name.text.toString()
+                var age = edit_age.text.toString()
+                mDatabase!!.child(key).child("Info").setValue(DataUser(key, name, age))
+                edit_name.setText("")
+                edit_age.setText("")
+                edit_key.setText("")
+
+            }
 
         }
 
@@ -47,17 +74,25 @@ class User_activity : AppCompatActivity() {
             }
 
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+                dataUserList.clear()
+
                 val children = p0!!.children
                 children.forEach {
                     var dataUser: DataUser = it.child("Info").getValue(DataUser::class.java)!!
                     dataUserList?.add(dataUser)
-
                 }
                 adapter.notifyDataSetChanged()
             }
 
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                dataUserList.clear()
 
+                val children = p0!!.children
+                children.forEach {
+                    var dataUser: DataUser = it.child("Info").getValue(DataUser::class.java)!!
+                    dataUserList?.add(dataUser)
+                }
+                adapter.notifyDataSetChanged()
             }
 
             override fun onChildRemoved(p0: DataSnapshot) {
@@ -66,5 +101,16 @@ class User_activity : AppCompatActivity() {
         }
         reference!!.addChildEventListener(userListener)
     }
+    override fun onResume() {
+        super.onResume()
 
+        var key = intent.getStringExtra("key")
+        var name = intent.getStringExtra("name")
+        var age = intent.getStringExtra("age")
+
+        edit_name.setText(name)
+        edit_age.setText(age)
+        edit_key.setText(key)
+
+    }
 }
